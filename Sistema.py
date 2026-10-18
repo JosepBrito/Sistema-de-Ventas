@@ -4,8 +4,6 @@ from tkinter import tkk
 # ===============================
 # Sección de Funciones del Sistema
 # ===============================
-#HOLA XD
-
 
 
 
