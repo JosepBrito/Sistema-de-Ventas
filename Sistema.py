@@ -4,7 +4,12 @@ from tkinter import tkk
 # ===============================
 # Sección de Funciones del Sistema
 # ===============================
+class Cliente:
+    def __init__(self,codigo,nombre):
+        self.codigo= codigo
+        self.nombre= nombre
 
+    
 
 
 
