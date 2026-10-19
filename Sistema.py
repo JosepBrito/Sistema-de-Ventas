@@ -6,9 +6,10 @@ from tkinter import tkk
 # ===============================
 class Cliente:
     def __init__(self,codigo,nombre):
+    def __init__(self,codigo:str,nombre:str):
         self.codigo= codigo
         self.nombre= nombre
-
+        
     
 
 
