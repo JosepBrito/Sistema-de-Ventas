@@ -41,7 +41,35 @@ class Venta:
         self.metodo_pago=metodo_pago
         self.detalles=[]
         self.total= 0.0
-        
+    def agregar_detalle(self, producto: Producto, cantidad: int):
+        if producto.stock >= cantidad:
+            producto.stock -=cantidad
+            detalle=DetalleVenta(producto, cantidad)
+            self.detalles.append(detalle)
+            self.total += detalle.subtotal
+        else:
+            raise ValueError(f"Stock insuficiente para el producto: {producto.nombre}")
+class Comprobante:
+    def __init__(self,numero:str , tipo:str, venta: Venta):
+        self.numero=numero
+        self.tipo=tipo
+        self.venta=venta
+class Devolucion:
+    def __init__(self, venta: Venta, fecha:str , motivo:str, estado_producto: str):
+        self.venta= venta
+        self.fecha= fecha
+        self.motivo= motivo
+        self.estado_producto= estado_producto
+class Negocio:
+    def __init__(self):
+        self.clientes= []
+        self.vendedores= []
+        self.inventario= Inventario()
+        self.ventas= []     
+    def mostrar_reportes_ventas(self):
+        print(f"---REPORTE DE VENTAS (Total registrados: {len(self.ventas)}) ---")  
+        for v in self.ventas:
+            print(f"Venta ID: {v.codigo} | Cliente: {v.cliente.nombre} | Total: ${v.total:.2f}")
     
 
 
