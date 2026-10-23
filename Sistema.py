@@ -40,6 +40,38 @@ class SistemaDeVentas:
         self.notebook.add(self.reportes, text=" -Reportes- ")
         self.notebook.add(self.historial, text=" -Historial de Ventas- ")
 
+        self.modulo_registro()
+
+    #Crear el modulo donde estaran las funciones del registro de ventas
+    def modulo_registro(self):
+        #Titulo del modulo
+        datos = ttk.LabelFrame(self.registro, text="Datos del Cliente y Producto")
+        datos.pack(padx=10, pady=5, fill="x")
+
+        #Seccion del Nombre del cliente
+        ttk.Label(datos, text="Cliente: ").grid(row=0, padx=5, pady=5)
+        self.texto_cliente = ttk.Entry(datos, width=20)
+        self.texto_cliente.grid(row=0, column=1, padx=5, pady=5)
+
+        #Seccion de los productos (falta por terminar/falta los productos)
+        ttk.Label(datos,text="Producto: ").grid(row=0, column=2, padx=5, pady=5)
+        self.produc_combo = ttk.Combobox(datos) # <---FALTA COMPLETAR LOS DATOS 
+        self.produc_combo.grid(row=0, column=3, padx=5, pady=5)
+
+        #Cantidad de productos de comprar el cliente
+        ttk.Label(datos,text="Cant: ").grid(row=0,column=4, padx=5, pady=5)
+        self.cant = ttk.Spinbox(datos, font=1, to=100, width=5)
+        self.cant.set(1)
+        self.cant.grid(row=0,column=5, padx=5, pady=5)
+
+        #Boton para agregar registrar lo que comprara (Falta ponerle el comando)
+        boton1 = ttk.Button(datos,text="Añadir al carrito", command=self.agregar_carrito) #<== Falta su comando
+        boton1.grid(row=0, column=6, padx=5, pady=5)
+
+    def agregar_carrito(self):
+        pass
+
+
 #Visualizar la ventana
 ventana=tk.Tk()
 sistema = SistemaDeVentas(ventana)
