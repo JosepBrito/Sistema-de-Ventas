@@ -44,8 +44,15 @@ class SistemaDeVentas:
         self.productos_sist = self.productos()
 
         self.carrito = []
+        self.historial_ventas = []
+        self.contador_boleta = 1
 
+        #Se crea esto para poder ejecutarle en su respectiva ventana
         self.modulo_registro()
+        self.modulo_precio()
+        self.modulo_boleta()
+
+        self.modulo_historial()
 
     def productos(self):
         return{
@@ -62,7 +69,7 @@ class SistemaDeVentas:
     }
 
 
-    #Crear el modulo donde estaran las funciones del registro de ventas
+    #--- Modulo1 ---Crear el modulo donde estaran las funciones del registro de ventas
     def modulo_registro(self):
         #Titulo del modulo
         datos = ttk.LabelFrame(self.registro, text="Datos del Cliente y Producto")
@@ -158,7 +165,98 @@ class SistemaDeVentas:
         self.total.config(text=f"Total es S/{total:.2f}")
 
     def finalizar_pago(self):
-        pass
+        if not self.carrito:
+            messagebox.showwarning("Carrito Vacio, Agregar", "Productos antes de cobrar.")
+            return
+        total = sum(i["subtotal"] for i in self.carrito)
+        num_boleta = f"B00-1{self.contador_boleta:06d}"
+
+        venta = {
+            "boleta": num_boleta,
+            "cliente": self.texto_cliente.get(),
+            "metodo": self.metodo_pago.get(),
+            "productos": list(self.carrito),
+            "total": total
+        }
+
+        self.historial_ventas.append(venta)
+        self.contador_boleta += 1
+
+        messagebox.showinfo("Venta Registrada", f"Venta Realizada con Exito \n N* Comprobante: {num_boleta}")
+
+        #Limpiar el carrito
+        self.carrito.clear()
+        self.actualizar_tabla()
+        self.actualizar_historial()
+
+    #--- Modulo 2 ---> Consultar Precios
+    def modulo_precio(self):
+        busqueda = ttk.Frame(self.precios)
+        busqueda.pack(fill="x",padx=10, pady=5)
+
+        ttk.Label(busqueda,text="Buscar Producto").pack(side="left", padx=5)
+        self.buscar_precio = ttk.Entry(busqueda)
+        self.buscar_precio.pack(side="left",padx=5, fill="x", expand=True)
+        self.buscar_precio.bind("<KeyRelease>", self.filtrar_precios)
+
+        #Mostrar la lista de los productos
+        self.tabla_precios = ttk.Treeview(self.precios, columns=("Codigo", "Nombre", "Precio", "Stock"), show="headings")
+        for c in ("Codigo", "Nombre", "Precio", "Stock"):
+            self.tabla_precios.heading(c,text=c)
+        self.tabla_precios.pack(fill="both", expand=True, padx=10, pady=5)
+
+        self.cargar_precios()
+        
+    def cargar_precios(self,filtro=""):
+        for i in self.tabla_precios.get_children():
+            self.tabla_precios.delete(i)
+        for cod, info in self.productos_sist.items():
+            if filtro.lower() in info["nombre"].lower():
+                self.tabla_precios.insert("","end",values=(cod,info['nombre'], f"S/. {info['precio']:.2f}", info['stock']))
+        
+
+    def filtrar_precios(self,prod): #Se pone un valor para que pueda buscar con el KeyRelease
+        self.cargar_precios(self.buscar_precio.get())
+
+    #--- MOdulo 3 ---
+    def modulo_boleta(self):
+        self.texto_boleta = tk.Text(self.comprobante,width=45,height=20)
+        self.texto_boleta.pack(padx=10,pady=10)
+        self.texto_boleta.insert("1.0","\n ---Realize una venta para ver la boleta---")
+
+    #--- MOdulo 4 ---
+
+
+
+    #--- Modulo 5 ---
+    def modulo_historial(self):
+        self.tabla_historial = ttk.Treeview(self.historial,columns=("Boleta", "Cliente", "Método", "Total"), show="headings")
+        for c in ("Boleta", "Cliente", "Método", "Total"):
+            self.tabla_historial.heading(c,text=c)
+        self.tabla_historial.pack(fill="both", expand=True, padx=10, pady=5)
+
+    def actualizar_historial(self):
+        for i in self.tabla_historial.get_children():
+            self.tabla_historial.delete(i)
+        for d in self.historial_ventas:
+            self.tabla_historial.insert("","end", values=(d["boleta"], d["cliente"], d["metodo"], f"S/ {d["total"]:.2f}"))
+
+        if self.historial_ventas:
+    
+          v = self.historial_ventas[-1]
+          texto_b = f"     ---Tienda---     "
+          texto_b += f"--------------------------"
+          texto_b += f"Boleta: {v['boleta']}\nCliente: {v['cliente']}\nPago: {v['metodo']}\n"
+          texto_b += f"--------------------------\n"
+          for item in v['productos']:
+            texto_b += f"{item['cant']}x {item['nombre'][:20]}.. S/ {item['subtotal']:.2f}\n"
+          texto_b += f"--------------------------\n"
+          texto_b += f"Total a Pagar: S/ {v['total']:.2f}\n"
+          texto_b += f"      ¡Gracias por su preferencia!\n"
+
+          self.texto_boleta.delete("1.0", tk.END)
+          self.texto_boleta.insert("1.0", texto_b)
+
 
 
 #Visualizar la ventana
