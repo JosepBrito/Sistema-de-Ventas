@@ -1,41 +1,73 @@
+from os import ST_MANDLOCK
 import tkinter as tk
 from tkinter import tkk
 
 # ===============================
 # Sección de Funciones del Sistema
 # ===============================
-#LUIS
+class Cliente:
+    def __init__(self, codigo:str, nombre:str):
+        self.codigo= codigo
+        self.nombre= nombre
 
+class Vendedor:
+    def __init__(self, codigo:str, nombre:str):
+        self.codigo= codigo
+        self.nombre= nombre
 
+class Producto:
+    def __init__(self, codigo: str, nombre:str, precio:float, stock:int):
+        self.codigo= codigo
+        self.nombre = nombre
+        self.__precio = precio # Encapsulamiento para proteger esta dato
+        self.stock = stock
 
+    def obtener_precio(self):
+        return self.__precio
 
+    @property
+    def precio(self):
+        return self.__precio
 
+class DetalleVenta:
+    def __init__(self, producto:Producto, cantidad: int):
+        self.producto = producto
+        self.cantidad = cantidad
+        self.subtotal = producto.obtener_precio() * cantidad
 
+class Venta:
+    def __init__(self, codigo:str, fecha:str, cliente: Cliente, metodo_pago: str = ""):
+        self.codigo= codigo
+        self.fecha = fecha
+        self.cliente = cliente
+        self.vendedor = Vendedor("V001", "Vendedor Principal")
+        self.metodo_pago = metodo_pago
+        self.detalles = []
+        self.total = 0.0
 
+    def agregar_detalle(self, producto: Producto, cantidad: int):
+        if producto.stock >= cantidad:
+            producto.stock -= cantidad
+            detalle = DetalleVenta(producto, cantidad)
+            self.detalles.append(detalle)
+            self.total += detalle.subtotal
+        else:
+            raise ValueError(f"Stock insuficiente para el producto: {producto.nombre}")
 
-
-
-
-
-
-
-
-#====================================
-#DYLAN
 class Comprobante:
-    def __init__(self,numero:str, tipo=str, venta:Venta):
+    def __init__(self,numero:str, tipo:str, venta:Venta):
         self.numero=numero
         self.tipo= tipo
         self.venta= venta
         
-    def generar_ticket(self, detalle_pago= str="")->str:
-        lineas= [
+    def generar_ticket(self, detalle_pago: str="")->str:
+        lineas = [
             "="*50,
             f"              {self.tipo.upper()}",
             f"                N°: {self.numero}",
             "="*50,
             f"Fecha     :{self.venta.fecha}",
-            f"Cliente"  :{self.venta.cliente.nombre} (Cod: {self.venta.cliente.codigo})",
+            f"Cliente  :{self.venta.cliente.nombre} (Cod: {self.venta.cliente.codigo})",
             f"Vendedor  :{self.venta.vendedor.nombre}",
             "-"*50,
             f"{'Cant.':<6}{'Producto':<22}{'P.Unit':<9}{'SubTotal':<8}",
@@ -87,7 +119,7 @@ class PagoTarjeta(MetodoPago):
     def __init__(self, nombre):
         super().__init__("Tarjeta de Credito")
         
-    def procesar_pago(self, float) ->str:
+    def procesar_pago(self, monto:float) ->str:
         comision= monto * 0.03
         total_final = monto + comision    
         return (
