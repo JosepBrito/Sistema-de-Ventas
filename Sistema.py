@@ -1,4 +1,3 @@
-from os import ST_MANDLOCK
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -79,7 +78,7 @@ class Comprobante:
                 f"{det.cantidad:<6}{det.producto.nombre[:20]:<22}S/.{det.producto.obtener_precio():<6.2f} S/.{det.subtotal:<6.2f}"
             )
         lineas.append("-" * 50)
-        lineas.append(f"Subtotal Venta: S/. {self.venta.total:2f}")
+        lineas.append(f"Subtotal Venta: S/. {self.venta.total:.2f}")
         lineas.append(f"Metodo de Pago: {self.venta.metodo_pago}")
         lineas.append("-"*50)
         if detalle_pago:
@@ -87,7 +86,7 @@ class Comprobante:
             for p_linea in detalle_pago.splitlines():
                 lineas.append(f"{p_linea}")
             lineas.append("-"*50)
-        return "\n".Join(lineas)
+        return "\n".join(lineas)
 class Devolucion:
     def __init__(self, venta: Venta, fecha: str, motivo: str, estado_product: str):
         self.venta= venta
@@ -106,18 +105,18 @@ class PagoEfectivo(MetodoPago):
     def __init__(self):
         super().__init__("Efectivo")
         
-        def procesar_pago(self, monto: float)-> str:
-            descuento= monto * 0.05
-            total_final= monto - descuento
-            return (
-                f"=== PAGO EN EFECTIVO ===\n"
-                f"Monto Original: S/. {monto:.2f}\n"
-                f"Descuento Efectivo: S/. {descuento:.2f}\n"
-                f"Total final a Pagar: S/. {total_final:.2f}\n"
-                f"¡Pago en efectivo procesando con exito en caja!"
-            )
+    def procesar_pago(self, monto: float)-> str:
+        descuento= monto * 0.05
+        total_final= monto - descuento
+        return (
+            f"=== PAGO EN EFECTIVO ===\n"
+            f"Monto Original: S/. {monto:.2f}\n"
+            f"Descuento Efectivo: S/. {descuento:.2f}\n"
+            f"Total final a Pagar: S/. {total_final:.2f}\n"
+            f"¡Pago en efectivo procesando con exito en caja!"
+        )
 class PagoTarjeta(MetodoPago):
-    def __init__(self, nombre):
+    def __init__(self):
         super().__init__("Tarjeta de Credito")
         
     def procesar_pago(self, monto:float) ->str:
@@ -126,11 +125,11 @@ class PagoTarjeta(MetodoPago):
         return (
             f"=== PAGO CON TARJETA DE CREDITO ===\n"
             f"Monto Original: S/. {monto:.2f}\n"
-            f"Comision Bancaria: S/. {total_final:.2f}\n"
+            f"Comision Bancaria: S/. {comision:.2f}\n"
             f"Total Final a Pagar: S/. {total_final:.2f}\n\n"
             F"¡Transacción bancaria aprobada!"
         )    
-class PagoTransferencis(MetodoPago):
+class PagoTransferencia(MetodoPago):
     def __init__(self):
         super().__init__("Yape / Plin")
     
@@ -146,10 +145,6 @@ class PagoTransferencis(MetodoPago):
         )
         
         
-    
-
-
-
 # ===============================
 # Seccion de la creacion de la interfaz con Tkinter
 # ===============================
@@ -182,7 +177,7 @@ class SistemaDeVentas:
 
         self.carrito = []
     
-        self.contador_venta = 1
+        self.contador_ventas = 1
 
         #Se crea esto para poder ejecutarle en su respectiva ventana
         self.modulo_registro()
@@ -223,7 +218,7 @@ class SistemaDeVentas:
 
         #Cantidad de productos de comprar el cliente
         ttk.Label(datos,text="Cant: ").grid(row=0,column=4, padx=5, pady=5)
-        self.cant = ttk.Spinbox(datos, font=1, to=100, width=5)
+        self.cant = ttk.Spinbox(datos, from_=1, to=100, width=5)
         self.cant.set(1)
         self.cant.grid(row=0,column=5, padx=5, pady=5)
 
@@ -264,14 +259,11 @@ class SistemaDeVentas:
         self.radio_tarjeta.grid(row=0,column=2,padx=12, pady=5)
         self.radio_transferencia.grid(row=0,column=3,padx=12, pady=5)
 
-        self.total=ttk.Label(pago, text="Total es S/. 0.00", font=("Arial", 10, "bolf"))
+        self.total=ttk.Label(pago, text="Total es S/. 0.00", font=("Arial", 10, "bold"))
         self.total.grid(row=0, column=4, padx=20,)
 
         pagar = ttk.Button(pago, text="Finalizar Venta", command=self.finalizar_pago)
         pagar.grid(row=0,column=5,padx=10,pady=5)
-
-
-    
 
     def agregar_carrito(self):
         nombre_prod = self.produc_combo.get()
@@ -293,7 +285,7 @@ class SistemaDeVentas:
         #Obtener el producto seleccionado
         prod_obj = next(p for p in self.productos_sist.values() if p.nombre == nombre_prod)
 
-       if cant > prod_obj.stock:
+        if cant > prod_obj.stock:
            messagebox.showwarning("Stock Insuficiente", f"Solo quedan {prod_obj.stock} unidades de {prod_obj.nombre}")
            return
 
@@ -315,8 +307,9 @@ class SistemaDeVentas:
                 "end",
                 values=(
                     det.producto.nombre, 
-                    f"S/.{item['precio']:.2f}", det.cantidad, 
-                    f"S/. {item['subtotal']:.2f}"
+                    f"S/.{det.producto.obtener_precio():.2f}", 
+                    det.cantidad, 
+                    f"S/. {det.subtotal:.2f}"
                 )
             )
             total += det.subtotal
@@ -332,35 +325,36 @@ class SistemaDeVentas:
         cod_cli = f"CLI-{self.contador_ventas:03d}"
         cliente = Cliente(cod_cli,nombre_cli)
 
-        fech_simulada = datetime.time.now().strftime("%d/%m/%Y %H:%M")
-        vendedor_simulado = Vendedor("V001", "Vendedor Principal")
+        fech_simulada = datetime.now().strftime("%d/%m/%Y %H:%M")
 
         opcion = self.metodo_pago.get()
         if opcion == "Efectivo":
             metodo = PagoEfectivo()
         elif opcion == "Tarjeta":
-            metodo == PagoEfectivo()
+            metodo = PagoEfectivo()
         elif opcion == "Transferencia":
-            metodo == PagoTransferencia()
+            metodo = PagoTransferencia()
         else:
-            metodo == PagoEfectivo()
+            metodo = PagoEfectivo()
 
-        cod_venta = f"V-{self.contador_venta:03d}"
+        cod_venta = f"V-{self.contador_ventas:03d}"
         nueva_venta = Venta(
             codigo = cod_venta,
             fecha = fech_simulada,
             cliente = cliente,
-            vendedor = vendedor_simulado,
             metodo_pago = metodo.nombre
         )
 
         for det in self.carrito:
             nueva_venta.agregar_detalle(det.producto, det.cantidad)
 
-        resultado = metodo.procesar_pago(nueva_venta.total)
+        resultado_pago = metodo.procesar_pago(nueva_venta.total)
 
-        num_comp = f"B001-{self.contador_venta:04d}"
+        num_comp = f"B001-{self.contador_ventas:04d}"
         comprobante = Comprobante(num_comp, "Boleta de Venta", nueva_venta)
+        self.contador_ventas += 1
+
+        self.mostrar_comprobante(comprobante, resultado_pago)
         self.notebook.select(self.comprobante)
 
         messagebox.showinfo("Venta Exitosa", f"Venta {nueva_venta.codigo} procesada con éxito. \nCComprobante {num_comp} generado.")
@@ -369,7 +363,7 @@ class SistemaDeVentas:
         self.carrito.clear()
         self.actualizar_tabla()
         self.cargar_precios()
-        self.texto_cliente.delate(0, "end")
+        self.texto_cliente.delete(0, "end")
 
     #--- Pestaña 2 ---> Consultar Precios
     def modulo_precio(self):
@@ -393,11 +387,11 @@ class SistemaDeVentas:
         for i in self.tabla_precios.get_children():
             self.tabla_precios.delete(i)
         for cod, prod in self.productos_sist.items():
-            if filtro.lower() in prod.nombre.lower() or filtro.lower() in cod.lower:
+            if filtro.lower() in prod.nombre.lower() or filtro.lower() in cod.lower():
                 self.tabla_precios.insert(
                     "",
                     "end",
-                    values=(cod,prod.nombre, f"S/. {prod.obtener_precio:.2f}", prod.stock)
+                    values=(cod,prod.nombre, f"S/. {prod.obtener_precio():.2f}", prod.stock)
                 )
         
 
@@ -417,7 +411,7 @@ class SistemaDeVentas:
     def mostrar_comprobante(self, comprobante: Comprobante, resultado_pago: str):
         texto = comprobante.generar_ticket(resultado_pago)
         self.txt_comprobante.config(state="normal")
-        self.txt_comprobante.delate("1.0", "end")
+        self.txt_comprobante.delete("1.0", "end")
         self.txt_comprobante.insert("1.0", texto)
         self.txt_comprobante.config(state="disabled")
 
@@ -425,11 +419,8 @@ class SistemaDeVentas:
         self.finalizar_pago()
 
 
-
-
-
 #Visualizar la ventana
-if __name__ == "__main__"
+if __name__ == "__main__":
     ventana=tk.Tk()
     sistema = SistemaDeVentas(ventana)
     ventana.mainloop()
