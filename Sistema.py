@@ -331,7 +331,7 @@ class SistemaDeVentas:
         if opcion == "Efectivo":
             metodo = PagoEfectivo()
         elif opcion == "Tarjeta":
-            metodo = PagoEfectivo()
+            metodo = PagoTarjeta()
         elif opcion == "Transferencia":
             metodo = PagoTransferencia()
         else:
